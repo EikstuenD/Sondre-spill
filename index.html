@@ -2,81 +2,140 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<title>CodeRacer Open World</title>
+<title>CodeRacer 3D – First Person</title>
 <style>
 
-    body {
+    body { margin: 0; overflow: hidden; background: black; }
 
-      margin: 0;
+    #info {
 
-      background: #111;
+      position: absolute;
+
+      top: 10px;
+
+      width: 100%;
 
       color: white;
 
-      font-family: Arial;
-
       text-align: center;
 
-    }
-
-    canvas {
-
-      background: #2c7a3f; /* gress */
-
-      display: block;
-
-      margin: auto;
-
-      border: 3px solid #555;
-
-    }
-
-    h1 {
-
-      margin: 10px;
+      font-family: Arial;
 
     }
 </style>
 </head>
 <body>
-<h1>🏎️ CodeRacer – Open World</h1>
-<p>WASD / Piltaster for å kjøre</p>
-<canvas id="game" width="800" height="500"></canvas>
+<div id="info">WASD = kjør | Mus = se rundt</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 
-  const canvas = document.getElementById("game");
+  // SCENE
 
-  const ctx = canvas.getContext("2d");
+  const scene = new THREE.Scene();
 
-  // VERDEN
+  scene.background = new THREE.Color(0x87ceeb);
 
-  const world = {
+  // KAMERA (FIRST PERSON)
 
-    width: 2000,
+  const camera = new THREE.PerspectiveCamera(
 
-    height: 2000
+    75,
 
-  };
+    window.innerWidth / window.innerHeight,
 
-  // BIL
+    0.1,
 
-  const car = {
+    1000
 
-    x: 1000,
+  );
 
-    y: 1000,
+  // RENDERER
 
-    angle: 0,
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-    speed: 0,
+  renderer.setSize(window.innerWidth, window.innerHeight);
 
-    maxSpeed: 6,
+  document.body.appendChild(renderer.domElement);
 
-    accel: 0.2,
+  // LYS
 
-    turnSpeed: 0.05
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-  };
+  const sun = new THREE.DirectionalLight(0xffffff, 0.6);
+
+  sun.position.set(50, 100, 50);
+
+  scene.add(sun);
+
+  // BAKKE
+
+  const ground = new THREE.Mesh(
+
+    new THREE.PlaneGeometry(500, 500),
+
+    new THREE.MeshStandardMaterial({ color: 0x2c7a3f })
+
+  );
+
+  ground.rotation.x = -Math.PI / 2;
+
+  scene.add(ground);
+
+  // VEI
+
+  const road = new THREE.Mesh(
+
+    new THREE.BoxGeometry(20, 0.1, 500),
+
+    new THREE.MeshStandardMaterial({ color: 0x333333 })
+
+  );
+
+  road.position.y = 0.05;
+
+  scene.add(road);
+
+  // BY (ENKLE BYGNINGER)
+
+  for (let i = 0; i < 50; i++) {
+
+    const building = new THREE.Mesh(
+
+      new THREE.BoxGeometry(10, Math.random() * 40 + 10, 10),
+
+      new THREE.MeshStandardMaterial({ color: 0x777777 })
+
+    );
+
+    building.position.set(
+
+      Math.random() * 200 - 100,
+
+      building.geometry.parameters.height / 2,
+
+      Math.random() * 200 - 100
+
+    );
+
+    scene.add(building);
+
+  }
+
+  // BIL (erstattes med BMW-modell senere)
+
+  const car = new THREE.Mesh(
+
+    new THREE.BoxGeometry(2, 1, 4),
+
+    new THREE.MeshStandardMaterial({ color: 0x0055ff })
+
+  );
+
+  car.position.y = 0.5;
+
+  scene.add(car);
+
+  // KONTROLLER
 
   const keys = {};
 
@@ -84,69 +143,37 @@
 
   window.addEventListener("keyup", e => keys[e.key] = false);
 
-  function update() {
+  let speed = 0;
 
-    // GASS / BREMS
+  function animate() {
 
-    if (keys["ArrowUp"] || keys["w"]) car.speed += car.accel;
+    requestAnimationFrame(animate);
 
-    if (keys["ArrowDown"] || keys["s"]) car.speed -= car.accel;
+    if (keys["w"]) speed += 0.01;
 
-    car.speed *= 0.98; // friksjon
+    if (keys["s"]) speed -= 0.01;
 
-    car.speed = Math.max(Math.min(car.speed, car.maxSpeed), -car.maxSpeed / 2);
+    speed *= 0.98;
 
-    // SVING
+    if (keys["a"]) car.rotation.y += 0.03;
 
-    if (keys["ArrowLeft"] || keys["a"]) car.angle -= car.turnSpeed;
+    if (keys["d"]) car.rotation.y -= 0.03;
 
-    if (keys["ArrowRight"] || keys["d"]) car.angle += car.turnSpeed;
+    car.translateZ(speed);
 
-    // BEVEGELSE
+    // FIRST PERSON KAMERA
 
-    car.x += Math.cos(car.angle) * car.speed;
+    camera.position.copy(car.position);
 
-    car.y += Math.sin(car.angle) * car.speed;
+    camera.position.y += 1;
 
-    draw();
+    camera.rotation.copy(car.rotation);
 
-    requestAnimationFrame(update);
-
-  }
-
-  function draw() {
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // KAMERA
-
-    const camX = car.x - canvas.width / 2;
-
-    const camY = car.y - canvas.height / 2;
-
-    // VEI (Forza-ish)
-
-    ctx.fillStyle = "#555";
-
-    ctx.fillRect(800 - camX, 0 - camY, 400, world.height);
-
-    // BIL
-
-    ctx.save();
-
-    ctx.translate(car.x - camX, car.y - camY);
-
-    ctx.rotate(car.angle);
-
-    ctx.fillStyle = "red";
-
-    ctx.fillRect(-10, -5, 20, 10);
-
-    ctx.restore();
+    renderer.render(scene, camera);
 
   }
 
-  update();
+  animate();
 </script>
 </body>
 </html>
