@@ -6,53 +6,39 @@
 </head>
 <body>
 <h1>🏎️ CodeRacer</h1>
-<p>Skriv kode som setter farten på bilen din!</p>
-<textarea id="code" rows="6" cols="40">
+<p>Endre koden og last siden på nytt for å kjøre på nytt!</p>
+<pre id="code">
 
-// Eksempel:
+// KODEN SOM STYRER BILEN
 
-speed = 120;
-</textarea>
-<br><br>
-<button onclick="runCode()">Kjør!</button>
+let speed = 120;
+</pre>
 <h2 id="result"></h2>
 <script>
 
-    function runCode() {
+    let speed = 0;
 
-      let speed = 0;
+    // Koden "spilleren skriver"
 
-      try {
+    speed = 120;
 
-        eval(document.getElementById("code").value);
+    if (speed > 200) {
 
-        if (speed > 200) {
+      document.getElementById("result").innerText =
 
-          document.getElementById("result").innerText =
+        "💥 For fort! Du krasjet!";
 
-            "💥 For fort! Du krasjet!";
+    } else if (speed >= 100) {
 
-        } else if (speed >= 100) {
+      document.getElementById("result").innerText =
 
-          document.getElementById("result").innerText =
+        "🔥 Perfekt fart! Du vinner løpet!";
 
-            "🔥 Perfekt fart! Du vinner løpet!";
+    } else {
 
-        } else {
+      document.getElementById("result").innerText =
 
-          document.getElementById("result").innerText =
-
-            "🐢 For treg… du taper.";
-
-        }
-
-      } catch {
-
-        document.getElementById("result").innerText =
-
-          "❌ Kodefeil! Bilen starter ikke.";
-
-      }
+        "🐢 For treg… du taper.";
 
     }
 </script>
