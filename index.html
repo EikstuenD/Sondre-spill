@@ -2,111 +2,151 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<title>CodeRacer</title>
+<title>CodeRacer Open World</title>
 <style>
 
     body {
 
-      font-family: Arial, sans-serif;
+      margin: 0;
 
-      background-color: #111;
+      background: #111;
 
       color: white;
 
+      font-family: Arial;
+
       text-align: center;
 
-      padding: 20px;
+    }
+
+    canvas {
+
+      background: #2c7a3f; /* gress */
+
+      display: block;
+
+      margin: auto;
+
+      border: 3px solid #555;
 
     }
 
-    textarea {
+    h1 {
 
-      width: 300px;
-
-      height: 80px;
-
-      font-size: 16px;
-
-    }
-
-    button {
-
-      font-size: 16px;
-
-      padding: 10px 20px;
-
-      margin-top: 10px;
-
-      cursor: pointer;
-
-    }
-
-    #result {
-
-      margin-top: 20px;
-
-      font-size: 22px;
+      margin: 10px;
 
     }
 </style>
 </head>
 <body>
-<h1>🏎️ CodeRacer</h1>
-<p>Skriv kode som styrer farten på bilen din</p>
-<textarea id="code">
-
-// Endre tallet og trykk "Start løpet"
-
-speed = 120;
-</textarea>
-<br>
-<button onclick="startRace()">Start løpet</button>
-<div id="result"></div>
+<h1>🏎️ CodeRacer – Open World</h1>
+<p>WASD / Piltaster for å kjøre</p>
+<canvas id="game" width="800" height="500"></canvas>
 <script>
 
-    function startRace() {
+  const canvas = document.getElementById("game");
 
-      let speed = 0;
+  const ctx = canvas.getContext("2d");
 
-      try {
+  // VERDEN
 
-        // Kjør koden spilleren skrev
+  const world = {
 
-        eval(document.getElementById("code").value);
+    width: 2000,
 
-        if (speed > 200) {
+    height: 2000
 
-          document.getElementById("result").innerText =
+  };
 
-            "💥 KRASJ! Du kjørte for fort (" + speed + ")";
+  // BIL
 
-        } 
+  const car = {
 
-        else if (speed >= 100) {
+    x: 1000,
 
-          document.getElementById("result").innerText =
+    y: 1000,
 
-            "🔥 PERFEKT! Du vinner løpet med fart " + speed;
+    angle: 0,
 
-        } 
+    speed: 0,
 
-        else {
+    maxSpeed: 6,
 
-          document.getElementById("result").innerText =
+    accel: 0.2,
 
-            "🐢 For treg... bare " + speed;
+    turnSpeed: 0.05
 
-        }
+  };
 
-      } catch (error) {
+  const keys = {};
 
-        document.getElementById("result").innerText =
+  window.addEventListener("keydown", e => keys[e.key] = true);
 
-          "❌ Kodefeil! Sjekk at du har skrevet riktig.";
+  window.addEventListener("keyup", e => keys[e.key] = false);
 
-      }
+  function update() {
 
-    }
+    // GASS / BREMS
+
+    if (keys["ArrowUp"] || keys["w"]) car.speed += car.accel;
+
+    if (keys["ArrowDown"] || keys["s"]) car.speed -= car.accel;
+
+    car.speed *= 0.98; // friksjon
+
+    car.speed = Math.max(Math.min(car.speed, car.maxSpeed), -car.maxSpeed / 2);
+
+    // SVING
+
+    if (keys["ArrowLeft"] || keys["a"]) car.angle -= car.turnSpeed;
+
+    if (keys["ArrowRight"] || keys["d"]) car.angle += car.turnSpeed;
+
+    // BEVEGELSE
+
+    car.x += Math.cos(car.angle) * car.speed;
+
+    car.y += Math.sin(car.angle) * car.speed;
+
+    draw();
+
+    requestAnimationFrame(update);
+
+  }
+
+  function draw() {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // KAMERA
+
+    const camX = car.x - canvas.width / 2;
+
+    const camY = car.y - canvas.height / 2;
+
+    // VEI (Forza-ish)
+
+    ctx.fillStyle = "#555";
+
+    ctx.fillRect(800 - camX, 0 - camY, 400, world.height);
+
+    // BIL
+
+    ctx.save();
+
+    ctx.translate(car.x - camX, car.y - camY);
+
+    ctx.rotate(car.angle);
+
+    ctx.fillStyle = "red";
+
+    ctx.fillRect(-10, -5, 20, 10);
+
+    ctx.restore();
+
+  }
+
+  update();
 </script>
 </body>
 </html>
