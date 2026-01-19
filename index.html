@@ -4,305 +4,179 @@
 <meta charset="UTF-8">
 <title>CodeRacer 3D – BMW M4 Comp</title>
 <style>
-
-  body { margin:0; overflow:hidden; background:black; }
-
-  #hud {
-
-    position:absolute;
-
-    bottom:20px;
-
-    left:20px;
-
-    color:#00ff88;
-
-    font-family:Arial;
-
-    font-size:22px;
-
-    background:rgba(0,0,0,0.6);
-
-    padding:12px 18px;
-
-    border-radius:12px;
-
-  }
+ body { margin:0; overflow:hidden; background:black; }
+ #hud {
+   position:absolute;
+   bottom:20px;
+   left:20px;
+   color:#00ff88;
+   font-family:Arial;
+   font-size:22px;
+   background:rgba(0,0,0,0.6);
+   padding:12px 18px;
+   border-radius:12px;
+ }
 </style>
 </head>
 <body>
 <div id="hud">0 km/t</div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-
 // ================= SCENE =================
-
 const scene = new THREE.Scene();
-
 scene.background = new THREE.Color(0x9ecfff);
-
-scene.fog = new THREE.Fog(0x9ecfff, 80, 700);
-
-const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 3000);
-
+scene.fog = new THREE.Fog(0x9ecfff, 80, 1000);
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 5000);
 // ================= RENDERER =================
-
 const renderer = new THREE.WebGLRenderer({ antialias:true });
-
 renderer.setSize(innerWidth, innerHeight);
-
 renderer.shadowMap.enabled = true;
-
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
 document.body.appendChild(renderer.domElement);
-
 // ================= LYS =================
-
 scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.65));
-
 const sun = new THREE.DirectionalLight(0xffffff, 1);
-
 sun.position.set(200,300,100);
-
 sun.castShadow = true;
-
 sun.shadow.mapSize.set(2048,2048);
-
 scene.add(sun);
-
-// ================= VERDEN =================
-
+// ================= TERRAIN =================
+// Enkel “bakkestruktur” med perlin-lignende høyde
+const groundGeometry = new THREE.PlaneGeometry(5000,5000, 200, 200);
+for(let i=0; i<groundGeometry.attributes.position.count; i++){
+ const x = groundGeometry.attributes.position.getX(i);
+ const z = groundGeometry.attributes.position.getZ(i);
+ const y = Math.sin(x*0.002)*20 + Math.cos(z*0.002)*20; // bølgende terreng
+ groundGeometry.attributes.position.setY(i, y);
+}
+groundGeometry.computeVertexNormals();
 const ground = new THREE.Mesh(
-
-  new THREE.PlaneGeometry(5000,5000),
-
-  new THREE.MeshStandardMaterial({
-
-    color:0x1f7a3f,
-
-    roughness:1
-
-  })
-
+ groundGeometry,
+ new THREE.MeshStandardMaterial({
+   color:0x1f7a3f,
+   roughness:1,
+ })
 );
-
 ground.rotation.x = -Math.PI/2;
-
 ground.receiveShadow = true;
-
 scene.add(ground);
-
-// Asfalt
-
+// Asfalt vei – følger terrenget litt
 const road = new THREE.Mesh(
-
-  new THREE.PlaneGeometry(24,5000),
-
-  new THREE.MeshStandardMaterial({
-
-    color:0x222222,
-
-    roughness:0.7,
-
-    metalness:0.2
-
-  })
-
+ new THREE.PlaneGeometry(24,5000),
+ new THREE.MeshStandardMaterial({
+   color:0x222222,
+   roughness:0.7,
+   metalness:0.2
+ })
 );
-
 road.rotation.x = -Math.PI/2;
-
-road.position.y = 0.02;
-
+road.position.y = 0.05;
 road.receiveShadow = true;
-
 scene.add(road);
-
 // ================= BYGNINGER =================
-
 const buildings = [];
-
 const buildingBoxes = [];
-
 for(let i=0;i<120;i++){
-
-  const h = Math.random()*90+30;
-
-  const mesh = new THREE.Mesh(
-
-    new THREE.BoxGeometry(22,h,22),
-
-    new THREE.MeshStandardMaterial({
-
-      color:0x666666,
-
-      roughness:0.6,
-
-      metalness:0.1
-
-    })
-
-  );
-
-  mesh.position.set(
-
-    Math.random()*800-400,
-
-    h/2,
-
-    Math.random()*800-400
-
-  );
-
-  mesh.castShadow = true;
-
-  mesh.receiveShadow = true;
-
-  scene.add(mesh);
-
-  buildings.push(mesh);
-
-  const box = new THREE.Box3().setFromObject(mesh);
-
-  buildingBoxes.push(box);
-
+ const h = Math.random()*90+30;
+ const mesh = new THREE.Mesh(
+   new THREE.BoxGeometry(22,h,22),
+   new THREE.MeshStandardMaterial({
+     color:0x666666,
+     roughness:0.6,
+     metalness:0.1
+   })
+ );
+ mesh.position.set(
+   Math.random()*800-400,
+   h/2,
+   Math.random()*800-400
+ );
+ mesh.castShadow = true;
+ mesh.receiveShadow = true;
+ scene.add(mesh);
+ buildings.push(mesh);
+ const box = new THREE.Box3().setFromObject(mesh);
+ buildingBoxes.push(box);
 }
-
 // ================= BIL =================
-
 const car = new THREE.Mesh(
-
-  new THREE.BoxGeometry(2.1,1.2,4.6),
-
-  new THREE.MeshStandardMaterial({
-
-    color:0x0055ff,
-
-    metalness:0.7,
-
-    roughness:0.25
-
-  })
-
+ new THREE.BoxGeometry(2.1,1.2,4.6),
+ new THREE.MeshStandardMaterial({
+   color:0x0055ff,
+   metalness:0.7,
+   roughness:0.25
+ })
 );
-
 car.position.y = 0.6;
-
 car.castShadow = true;
-
 scene.add(car);
-
 const carBox = new THREE.Box3();
-
 // ================= FYSIKK =================
-
 let speed = 0;
-
-const maxSpeed = 83.3;   // 300 km/t
-
-const accel = 1.2;
-
-const brake = 2.0;
-
-const drag = 0.992;
-
-const turnSpeed = 1.6;
-
+const maxSpeed = 277.8;   // 1000 km/t
+const accel = 4.5;
+const brake = 6.0;
+const drag = 0.9965;
+const turnSpeed = 1.1;
 const keys = {};
-
 onkeydown = e => keys[e.key]=true;
-
 onkeyup   = e => keys[e.key]=false;
-
 // ================= LYD =================
-
 const engine = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1a61c7e2bb.mp3");
-
 engine.loop = true;
-
 engine.volume = 0.5;
-
 onclick = ()=> engine.play();
-
 // ================= KAMERA =================
-
-const chaseOffset = new THREE.Vector3(0,4.5,-11);
-
+const chaseOffset = new THREE.Vector3(0,7,-20);
 // ================= LOOP =================
-
 let last = performance.now();
-
 function loop(now){
-
-  requestAnimationFrame(loop);
-
-  const dt = (now-last)/1000;
-
-  last = now;
-
-  // INPUT
-
-  if(keys["w"]) speed += accel;
-
-  if(keys["s"]) speed -= brake;
-
-  speed *= drag;
-
-  speed = Math.max(Math.min(speed,maxSpeed), -15);
-
-  if(keys["a"]) car.rotation.y += turnSpeed * dt;
-
-  if(keys["d"]) car.rotation.y -= turnSpeed * dt;
-
-  // FLYTT – lagre gammel posisjon
-
-  const oldPos = car.position.clone();
-
-  car.translateZ(speed * dt);
-
-  // KOLLISJON
-
-  carBox.setFromObject(car);
-
-  for(let i=0;i<buildingBoxes.length;i++){
-
-    if(carBox.intersectsBox(buildingBoxes[i])){
-
-      car.position.copy(oldPos); // stopp
-
-      speed = 0;
-
-      break;
-
-    }
-
-  }
-
-  // KAMERA
-
-  const camPos = chaseOffset.clone().applyMatrix4(car.matrixWorld);
-
-  camera.position.lerp(camPos, 0.15);
-
-  camera.lookAt(car.position.x, car.position.y+1, car.position.z);
-
-  // LYD
-
-  engine.playbackRate = 0.6 + Math.abs(speed)/maxSpeed * 1.4;
-
-  // HUD
-
-  document.getElementById("hud").innerText =
-
-    Math.abs(speed*3.6).toFixed(0) + " km/t";
-
-  renderer.render(scene,camera);
-
+ requestAnimationFrame(loop);
+ const dt = (now-last)/1000;
+ last = now;
+ // INPUT
+ if(keys["w"]) speed += accel;
+ if(keys["s"]) speed -= brake;
+ speed *= drag;
+ speed = Math.max(Math.min(speed,maxSpeed), -25);
+ // Svinging fartsavhengig
+ const speedFactor = Math.max(0.2, 1 - Math.abs(speed)/maxSpeed);
+ if(keys["a"]) car.rotation.y += turnSpeed * speedFactor * dt;
+ if(keys["d"]) car.rotation.y -= turnSpeed * speedFactor * dt;
+ // FLYTT – lagre gammel posisjon
+ const oldPos = car.position.clone();
+ car.translateZ(speed * dt);
+ // KOLLISJON med bygninger
+ carBox.setFromObject(car);
+ for(let i=0;i<buildingBoxes.length;i++){
+   if(carBox.intersectsBox(buildingBoxes[i])){
+     car.position.copy(oldPos); // stopp
+     speed = 0;
+     break;
+   }
+ }
+ // HØYDE: bilen følger bakken (enkelt)
+ const carX = car.position.x + 2500; // offset for plane
+ const carZ = car.position.z + 2500;
+ const idxX = Math.floor(carX / 25);
+ const idxZ = Math.floor(carZ / 25);
+ if(idxX >=0 && idxX <= 200 && idxZ >=0 && idxZ <=200){
+   const i = idxZ * 201 + idxX;
+   const y = groundGeometry.attributes.position.getY(i);
+   car.position.y = y + 0.6;
+ }
+ // KAMERA
+ const camPos = chaseOffset.clone().applyMatrix4(car.matrixWorld);
+ camera.position.lerp(camPos, 0.15);
+ camera.lookAt(car.position.x, car.position.y+1, car.position.z);
+ // LYD
+ engine.playbackRate = 0.6 + Math.abs(speed)/maxSpeed * 1.4;
+ // HUD
+ document.getElementById("hud").innerText =
+   Math.abs(speed*3.6).toFixed(0) + " km/t";
+ renderer.render(scene,camera);
 }
-
 loop(performance.now());
 </script>
 </body>
 </html>
- 
