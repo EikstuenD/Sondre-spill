@@ -2,161 +2,60 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clicker Spill med Ascension</title>
-<style>
-       body {
-           font-family: Arial, sans-serif;
-           text-align: center;
-           background: #333;
-           color: white;
-           padding: 20px;
-       }
-       button {
-           padding: 15px 25px;
-           font-size: 18px;
-           margin: 10px;
-           cursor: pointer;
-           background-color: #5cb85c;
-           border: none;
-           border-radius: 5px;
-       }
-       .button-disable {
-           background-color: #ccc;
-           cursor: not-allowed;
-       }
-       .box {
-           background: #444;
-           padding: 20px;
-           border-radius: 10px;
-           display: inline-block;
-           width: 300px;
-           margin-bottom: 20px;
-       }
-       .ascension-box {
-           background: #555;
-           padding: 15px;
-           border-radius: 10px;
-           width: 300px;
-           margin-top: 20px;
-       }
-       .achievement-box {
-           background: #555;
-           padding: 15px;
-           border-radius: 10px;
-           width: 300px;
-           margin-top: 20px;
-       }
-       .achievement {
-           margin-bottom: 10px;
-       }
-</style>
+<title>CodeRacer</title>
 </head>
 <body>
-<h1>🔥 Clicker Spill med Ascension 🔥</h1>
-<div class="box">
-<h2>Poeng: <span id="points">0</span></h2>
-<button onclick="clickPoint()">Klikk!</button>
-</div>
-<div class="box">
-<h3>Oppgraderinger</h3>
-<button id="upgrade1" onclick="buyUpgrade(1)" class="upgrade-btn">Dobbelt poeng (+2) - Pris: <span id="upgrade1Cost">10</span></button>
-<button id="upgrade2" onclick="buyUpgrade(2)" class="upgrade-btn">Auto Klikker (+1/sek) - Pris: <span id="upgrade2Cost">50</span></button>
-<button id="upgrade3" onclick="buyUpgrade(3)" class="upgrade-btn">Multiplikator x2 - Pris: <span id="upgrade3Cost">200</span></button>
-</div>
-<div class="ascension-box">
-<h3>Ascension</h3>
-<button onclick="ascend()" id="ascendButton" class="button-disable">Ascender (Nødvendig: 1000 poeng)</button>
-<p>Ascension Points: <span id="ascensionPoints">0</span></p>
-</div>
-<div class="achievement-box">
-<h3>Prestasjoner</h3>
-<div class="achievement" id="achievement1">🔒 Første Klikk - Lås opp ved å klikke én gang!</div>
-<div class="achievement" id="achievement2">🔒 100 Poeng - Lås opp ved å nå 100 poeng!</div>
-<div class="achievement" id="achievement3">🔒 Super Klikker - Lås opp ved å kjøpe 3 oppgraderinger!</div>
-</div>
+<h1>🏎️ CodeRacer</h1>
+<p>Skriv kode som setter farten på bilen din!</p>
+<textarea id="code" rows="6" cols="40">
+
+// Eksempel:
+
+speed = 120;
+</textarea>
+<br><br>
+<button onclick="runCode()">Kjør!</button>
+<h2 id="result"></h2>
 <script>
-       let points = 0;
-       let clickPower = 1;
-       let upgrade1Cost = 10;
-       let upgrade2Cost = 50;
-       let upgrade3Cost = 200;
-       let autoClickers = 0;
-       let multiplier = 1;
-       let upgradeCount = 0;
-       let ascensionPoints = 0;
-       let ascensionUnlocked = false;
-       // Oppdater UI
-       function updateUI() {
-           document.getElementById("points").textContent = points;
-           document.getElementById("upgrade1Cost").textContent = upgrade1Cost;
-           document.getElementById("upgrade2Cost").textContent = upgrade2Cost;
-           document.getElementById("upgrade3Cost").textContent = upgrade3Cost;
-           document.getElementById("ascensionPoints").textContent = ascensionPoints;
-           // Oppdater Ascension-knapp
-           document.getElementById("ascendButton").classList.toggle("button-disable", points < 1000);
-           // Oppdater knapper: Deaktiver hvis du ikke har nok poeng
-           document.getElementById("upgrade1").classList.toggle("button-disable", points < upgrade1Cost);
-           document.getElementById("upgrade2").classList.toggle("button-disable", points < upgrade2Cost);
-           document.getElementById("upgrade3").classList.toggle("button-disable", points < upgrade3Cost);
-       }
-       // Klikk på poeng
-       function clickPoint() {
-           points += clickPower * multiplier;
-           updateUI();
-           // Prestasjoner
-           if (points >= 1 && document.getElementById("achievement1").style.color !== "green") {
-               document.getElementById("achievement1").style.color = "green";
-           }
-           if (points >= 100 && document.getElementById("achievement2").style.color !== "green") {
-               document.getElementById("achievement2").style.color = "green";
-           }
-       }
-       // Kjøp oppgradering
-       function buyUpgrade(upgradeId) {
-           if (upgradeId === 1 && points >= upgrade1Cost) {
-               points -= upgrade1Cost;
-               clickPower += 2;
-               upgrade1Cost = Math.floor(upgrade1Cost * 1.5);
-               upgradeCount++;
-           } else if (upgradeId === 2 && points >= upgrade2Cost) {
-               points -= upgrade2Cost;
-               autoClickers++;
-               upgrade2Cost = Math.floor(upgrade2Cost * 1.7);
-           } else if (upgradeId === 3 && points >= upgrade3Cost) {
-               points -= upgrade3Cost;
-               multiplier *= 2;
-               upgrade3Cost = Math.floor(upgrade3Cost * 2);
-           }
-           updateUI();
-           // Prestasjoner
-           if (upgradeCount >= 3 && document.getElementById("achievement3").style.color !== "green") {
-               document.getElementById("achievement3").style.color = "green";
-           }
-       }
-       // Ascender funksjon
-       function ascend() {
-           if (points >= 1000) {
-               ascensionPoints++;
-               points = 0;
-               clickPower = 1;
-               upgrade1Cost = 10;
-               upgrade2Cost = 50;
-               upgrade3Cost = 200;
-               autoClickers = 0;
-               multiplier = 1;
-               upgradeCount = 0;
-               // Gi ekstra fordeler etter ascension
-               ascensionUnlocked = true;
-               updateUI();
-           }
-       }
-       // Auto klikker logikk
-       setInterval(() => {
-           points += autoClickers;
-           updateUI();
-       }, 1000);
-       updateUI();
+
+    function runCode() {
+
+      let speed = 0;
+
+      try {
+
+        eval(document.getElementById("code").value);
+
+        if (speed > 200) {
+
+          document.getElementById("result").innerText =
+
+            "💥 For fort! Du krasjet!";
+
+        } else if (speed >= 100) {
+
+          document.getElementById("result").innerText =
+
+            "🔥 Perfekt fart! Du vinner løpet!";
+
+        } else {
+
+          document.getElementById("result").innerText =
+
+            "🐢 For treg… du taper.";
+
+        }
+
+      } catch {
+
+        document.getElementById("result").innerText =
+
+          "❌ Kodefeil! Bilen starter ikke.";
+
+      }
+
+    }
 </script>
 </body>
 </html>
+ 
