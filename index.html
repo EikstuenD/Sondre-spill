@@ -3,42 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <title>CodeRacer</title>
+<style>
+
+    body {
+
+      font-family: Arial, sans-serif;
+
+      background-color: #111;
+
+      color: white;
+
+      text-align: center;
+
+      padding: 20px;
+
+    }
+
+    textarea {
+
+      width: 300px;
+
+      height: 80px;
+
+      font-size: 16px;
+
+    }
+
+    button {
+
+      font-size: 16px;
+
+      padding: 10px 20px;
+
+      margin-top: 10px;
+
+      cursor: pointer;
+
+    }
+
+    #result {
+
+      margin-top: 20px;
+
+      font-size: 22px;
+
+    }
+</style>
 </head>
 <body>
 <h1>🏎️ CodeRacer</h1>
-<p>Endre koden og last siden på nytt for å kjøre på nytt!</p>
-<pre id="code">
+<p>Skriv kode som styrer farten på bilen din</p>
+<textarea id="code">
 
-// KODEN SOM STYRER BILEN
+// Endre tallet og trykk "Start løpet"
 
-let speed = 120;
-</pre>
-<h2 id="result"></h2>
+speed = 120;
+</textarea>
+<br>
+<button onclick="startRace()">Start løpet</button>
+<div id="result"></div>
 <script>
 
-    let speed = 0;
+    function startRace() {
 
-    // Koden "spilleren skriver"
+      let speed = 0;
 
-    speed = 120;
+      try {
 
-    if (speed > 200) {
+        // Kjør koden spilleren skrev
 
-      document.getElementById("result").innerText =
+        eval(document.getElementById("code").value);
 
-        "💥 For fort! Du krasjet!";
+        if (speed > 200) {
 
-    } else if (speed >= 100) {
+          document.getElementById("result").innerText =
 
-      document.getElementById("result").innerText =
+            "💥 KRASJ! Du kjørte for fort (" + speed + ")";
 
-        "🔥 Perfekt fart! Du vinner løpet!";
+        } 
 
-    } else {
+        else if (speed >= 100) {
 
-      document.getElementById("result").innerText =
+          document.getElementById("result").innerText =
 
-        "🐢 For treg… du taper.";
+            "🔥 PERFEKT! Du vinner løpet med fart " + speed;
+
+        } 
+
+        else {
+
+          document.getElementById("result").innerText =
+
+            "🐢 For treg... bare " + speed;
+
+        }
+
+      } catch (error) {
+
+        document.getElementById("result").innerText =
+
+          "❌ Kodefeil! Sjekk at du har skrevet riktig.";
+
+      }
 
     }
 </script>
